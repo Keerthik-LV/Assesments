@@ -1,0 +1,76 @@
+LAB 1
+
+1.
+select CustomerId, sum(DataUsed) as Total_data_used, avg(DataUsed) as Average_data_used
+from CustomerInteractions
+where month= 'March' and Year='2024' having Total_data_used> Average_data_used;
+group by CustomerId
+
+2. 
+select customerId
+from customerInteractions
+where callduration in (month='March' and year=2024) > (month='February' and year=2024)
+group by customerID;
+
+3.
+select customerId, sum(datausage)as Total_data, sum(messagecount) as Total_message
+from customerInteractions
+where Total_message in (month='March' and year=2024) < (month='February' and year=2024) having Total_data in (month='March' and year=2024) > (month='February' and year=2024)
+group by customerId;
+
+
+LAB 2
+
+4. 
+select producttypeid, sum(totalsalesamount)
+from QuarterlySales
+where producttypeid = 1
+group by producttypeid;
+
+5.
+select producttypeid, sum(totalsalesamount) as Total
+from QuarterlySales
+where quarter= 'q1' and year=2024
+group by producttypeid
+order by Total desc;
+
+6.
+select distinct producttypeid, sum(totalsalesamount)/sum(unitssold) as Average
+from QuarterlySales
+where quarter= 'q2' and year=2024
+group by producttypeid;
+
+LAB 3
+
+7.
+select region, avg(ConsumptionKWh) as Average 
+from SectorEnergyConsumption
+where month='March'
+group by region
+order by Average desc;
+
+8.
+select sector, sum(ConsumptionKWh) as Total 
+from SectorEnergyConsumption
+where month='February'>month='March'
+group by sector
+order by Total desc;
+
+9.
+select energysource,ConsumptionKWh
+from SectorEnergyConsumption
+order by ConsumptionKWh desc;
+
+The usage of fossil fuels is much higher than the usage of renewable energy resources.
+
+LAB 4
+
+10.
+select customername, avg(feedbackscore) as Averagefb, avg(claimscount) as Averagecc
+from InsuranceActivities
+where feedbackscore> Averagefb or claimscount>Averagecc having investigation='No'
+group by customername;
+
+11.
+
+12.
