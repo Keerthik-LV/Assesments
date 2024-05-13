@@ -1,0 +1,261 @@
+SQL REASSESSMENT
+DATE : 13/05/2024
+NAME : KEERTHIK VISHAL M S
+EMP ID : 4368
+
+1.
+SELECT 
+    d.name AS director_name,
+    COUNT(m.movie_id) AS total_movies,
+    SUM(m.box_office_million) AS total_earnings_million,
+    GROUP_CONCAT(m.title ORDER BY m.release_date) AS film_titles
+FROM Directors d
+JOIN Movies m ON d.director_id = m.director_id
+WHERE m.release_date >= DATE_SUB(CURDATE(), INTERVAL 10 YEAR)
+GROUP BY d.director_id
+HAVING SUM(m.box_office_million) > 200
+ORDER BY total_earnings_million DESC;
+
+2. 
+WITH GenreEarnings AS (
+    SELECT 
+        g.genre_name,
+        SUM(m.box_office_million) AS total_earnings,
+        COUNT(m.movie_id) AS num_movies,
+        AVG(m.box_office_million) AS avg_earnings,
+        MAX(m.box_office_million) AS max_earnings,
+        MIN(m.box_office_million) AS min_earnings
+    FROM Movies m
+    JOIN Movie_Genres mg ON m.movie_id = mg.movie_id
+    JOIN Genres g ON mg.genre_id = g.genre_id
+    WHERE m.release_date >= '2023-01-01' AND m.release_date < '2024-01-01'
+    GROUP BY g.genre_name
+)
+SELECT 
+    genre_name,
+    total_earnings,
+    num_movies,
+    avg_earnings,
+    max_earnings,
+    min_earnings
+FROM GenreEarnings
+ORDER BY total_earnings DESC
+LIMIT 1;
+
+3. 
+SELECT 
+    m.title,
+    m.box_office_million AS box_office,
+    m.release_date,
+    GROUP_CONCAT(g.genre_name ORDER BY g.genre_name) AS genres
+FROM Movies m
+JOIN Movie_Genres mg ON m.movie_id = mg.movie_id
+JOIN Genres g ON mg.genre_id = g.genre_id
+WHERE g.genre_name IN ('Science Fiction', 'Adventure')
+GROUP BY m.movie_id
+HAVING COUNT(DISTINCT g.genre_name) = 2
+ORDER BY m.box_office_million DESC;
+
+4. 
+SELECT 
+    MONTH(m.release_date) AS release_month,
+    g.genre_name,
+    COUNT(m.movie_id) AS num_releases
+FROM Movies m
+JOIN Movie_Genres mg ON m.movie_id = mg.movie_id
+JOIN Genres g ON mg.genre_id = g.genre_id
+WHERE YEAR(m.release_date) = 2023
+GROUP BY release_month, g.genre_name WITH ROLLUP
+ORDER BY release_month, g.genre_name;
+
+5. 
+SELECT 
+    g.genre_name,
+    SUM(m.box_office_million) AS total_earnings
+FROM Movies m
+JOIN Movie_Genres mg ON m.movie_id = mg.movie_id
+JOIN Genres g ON mg.genre_id = g.genre_id
+WHERE YEAR(m.release_date) = 2023
+GROUP BY g.genre_name
+ORDER BY total_earnings DESC;
+
+6. 
+SELECT DISTINCT g.genre_name
+FROM Directors d
+JOIN Movies m ON d.director_id = m.director_id
+JOIN Movie_Genres mg ON m.movie_id = mg.movie_id
+JOIN Genres g ON mg.genre_id = g.genre_id
+WHERE d.name = 'Director A' AND g.genre_name NOT IN (
+    SELECT g.genre_name
+    FROM Directors d
+    JOIN Movies m ON d.director_id = m.director_id
+    JOIN Movie_Genres mg ON m.movie_id = mg.movie_id
+    JOIN Genres g ON mg.genre_id = g.genre_id
+    WHERE d.name = 'Director B'
+);
+
+7. 
+SELECT 
+    s.supplier_name,
+    SUM(t.quantity * p.price) AS total_revenue
+FROM Transactions t
+JOIN Products p ON t.product_id = p.product_id
+JOIN suppliers s ON p.supplier_id = s.supplier_id
+WHERE t.transaction_date BETWEEN '2022-01-01' AND '2022-12-31'
+GROUP BY s.supplier_name
+ORDER BY total_revenue DESC
+LIMIT 3;
+
+8. 
+SELECT 
+    p.product_name,
+    p.category,
+    AVG(p.price) AS avg_price,
+    SUM(t.quantity * p.price) AS total_revenue,
+    SUM(t.quantity * p.price) - (SUM(t.quantity * p.price) / COUNT(t.transaction_id)) AS total_profit,
+    (SUM(t.quantity * p.price) - (SUM(t.quantity * p.price) / COUNT(t.transaction_id))) / AVG(p.price) AS profit_margin
+FROM products p
+JOIN Transactions t ON p.product_id = t.product_id
+GROUP BY p.product_id, p.category
+ORDER BY profit_margin DESC;
+
+9. 
+SELECT 
+    product_name,
+    price,
+    CASE
+        WHEN price <= 100 THEN 'Low'
+        WHEN price > 100 AND price <= 500 THEN 'Medium'
+        ELSE 'High'
+    END AS price_tier
+FROM products;
+
+10. 
+SELECT 
+    p.product_name,
+    p.category,
+    t.transaction_date,
+    t.quantity,
+    SUM(t2.quantity) AS cumulative_quantity
+FROM products p
+JOIN Transactions t ON p.product_id = t.product_id
+JOIN Transactions t2 ON p.product_id = t2.product_id AND t2.transaction_date <= t.transaction_date
+GROUP BY p.product_name, p.category, t.transaction_date, t.quantity
+ORDER BY p.product_name, t.transaction_date;
+
+11. 
+SELECT 
+    p.product_name,
+    p.category,
+    SUM(t.quantity) AS total_quantity
+FROM products p
+JOIN Transactions t ON p.product_id = t.product_id
+GROUP BY p.product_id, p.product_name, p.product_name, p.category
+ORDER BY total_quantity DESC
+LIMIT 5;
+
+12. 
+SELECT 
+    t.transaction_date,
+    COALESCE(SUM(t.quantity), 0) AS daily_sales
+FROM Transactions t
+WHERE t.transaction_date BETWEEN '2023-01-01' AND '2023-01-30'
+GROUP BY t.transaction_date
+ORDER BY t.transaction_date;
+
+13. 
+SELECT 
+    s.Name,
+    CASE 
+        WHEN c.ClassID IS NULL THEN 'Unregistered'
+        ELSE c.ClassName
+    END AS Class_Status
+FROM Students s
+LEFT JOIN Classes c ON s.ClassID = c.ClassID
+ORDER BY s.Name;
+
+14. 
+SELECT 
+    s.Name,
+    CASE 
+        WHEN c.ClassID IS NULL THEN 'Unregistered'
+        ELSE c.ClassName
+    END AS Class_Status
+FROM Students s
+LEFT JOIN Classes c ON s.ClassID = c.ClassID
+WHERE c.ClassID IS NULL
+ORDER BY s.Name;
+
+15. 
+SELECT Name
+FROM Students
+UNION
+SELECT TeacherName
+FROM Teachers;
+
+16. 
+SELECT DISTINCT t.TeacherName
+FROM Teachers t
+JOIN Classes c ON t.TeacherID = c.TeacherID
+JOIN Students s ON c.ClassID = s.ClassID
+JOIN Grades g ON s.StudentID = g.StudentID
+WHERE g.Score > 95 OR g.Score < 65
+GROUP BY t.TeacherName
+HAVING COUNT(DISTINCT CASE WHEN g.Score > 95 THEN s.StudentID END) >= 1
+AND COUNT(DISTINCT CASE WHEN g.Score < 65 THEN s.StudentID END) >= 1;
+
+There are no such teachers in the district whose classes have show both high achievement and notable challenges, indicated by having at least one student scoring above 95% and another scoring below 65%.
+
+17. 
+SELECT 
+    s.Name,
+    g1.Subject,
+    g1.Score AS Previous_Score,
+    g2.Score AS Current_Score
+FROM Students s
+JOIN Grades g1 ON s.StudentID = g1.StudentID
+JOIN Grades g2 ON s.StudentID = g2.StudentID AND g1.GradeID + 1 = g2.GradeID
+WHERE g1.Score < g2.Score
+ORDER BY s.Name, g1.Subject;
+
+18. 
+SELECT 
+    c.name AS Candidate_Name,
+    er.election_year AS Current_Year,
+    AVG(er.votes) AS Average_Votes_Past_3_Elections
+FROM Candidates c
+JOIN Election_Results er ON c.candidate_id = er.candidate_id
+WHERE er.election_year < YEAR(CURDATE())
+GROUP BY c.name, er.election_year
+HAVING COUNT(DISTINCT er.election_year) = 3
+ORDER BY c.name, er.election_year;
+
+19. 
+SELECT 
+    c.name AS Constituency,
+    ca.name AS Candidate,
+    er.votes,
+    RANK() OVER (PARTITION BY c.constituency_id ORDER BY er.votes DESC) AS rankings,
+    LEAD(er.votes) OVER (PARTITION BY c.constituency_id ORDER BY er.votes DESC) - er.votes AS Vote_Margin
+FROM Election_Results er
+JOIN Constituencies c ON er.constituency_id = c.constituency_id  
+JOIN Candidates ca ON er.candidate_id = ca.candidate_id
+WHERE er.election_year = 2024
+ORDER BY c.constituency_id, rankings;
+
+
+20.
+SELECT 
+    c.name AS Constituency,
+    ca.name AS Candidate,
+    er.election_year,
+    er.votes,
+    MAX(er.votes) OVER (PARTITION BY ca.name, c.constituency_id) AS Peak_Votes,
+    AVG(er.votes) OVER (PARTITION BY ca.name, c.constituency_id ORDER BY er.election_year ROWS BETWEEN 1 PRCEDING AND 1 FOLLOWING) AS Moving_Average
+FROM Election_Results er
+JOIN Constituencies c ON er.constituency_id = c.constituency_id
+JOIN Candidates ca ON er.candidate_id = ca.candidate_id
+WHERE er.election_year BETWEEN 2022 AND 2024
+ORDER BY c.name, ca.name, er.election_year;
+
+
